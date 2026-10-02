@@ -32,7 +32,7 @@ services:
       - redis
       - evolution-postgres
     ports:
-      - "127.0.0.1:9091:9090"
+      - "9091:9090"
     volumes:
       - evolution_instances_replica:/evolution/instances
     networks:
@@ -128,7 +128,7 @@ services:
     # Painel /admin acessível só localmente. A Evolution entrega o webhook
     # pela rede docker (http://mcp_agendamentos:8000).
     ports:
-      - "127.0.0.1:8001:8000"
+      - "8001:8000"
     environment:
       MCP_DB_PATH: /data/agendamentos.db
       MCP_TZ: America/Sao_Paulo
