@@ -1,0 +1,99 @@
+<!-- ============ AGENDAMENTOS ============ -->
+<div class="card drag-sec" data-sec="agendamentos">
+  <div class="card-head"><span class="drag-grip" title="Arrastar para reordenar">⠿</span><h2>Agendamentos ativos</h2><span class="tag">{{ agendamentos|length }} marcados</span></div>
+  {% if not apenas_ativos %}
+  <div class="ag-toolbar">
+    <button type="button" class="btn-primary btn-sm" id="ag-novo-abrir">+ Novo agendamento</button>
+  </div>
+  {% endif %}
+
+  <div class="cal-toolbar">
+    <a href="{{ mes_ant_url }}" class="cal-nav" aria-label="Mês anterior" title="Mês anterior">←</a>
+    <span class="cal-mes">{{ mes_nome }} <b>{{ ano_exib }}</b></span>
+    <a href="{{ mes_prox_url }}" class="cal-nav" aria-label="Próximo mês" title="Próximo mês">→</a>
+    <a href="{{ hoje_url }}" class="btn-sm btn-ghost cal-hoje">Hoje</a>
+  </div>
+
+  <div class="cal-grid" role="grid" aria-label="Calendário de agendamentos">
+    {% for d in dias_semana %}<div class="cal-dow" role="columnheader">{{ d }}</div>{% endfor %}
+    {% for semana in cal %}
+      {% for dia in semana %}
+      <div class="cal-dia{% if dia.fora %} is-fora{% endif %}{% if dia.hoje %} is-hoje{% endif %}" role="gridcell">
+        <span class="cal-num">{{ dia.dia }}</span>
+        <div class="cal-itens">
+            {% if dia.agendamentos %}
+            {% for a in dia.agendamentos %}
+            <button type="button" class="cal-chip" data-id="{{ a.id }}" data-telefone="{{ a.telefone_cliente }}"
+                    title="{{ a.nome_cliente }}">
+              <span class="cal-chip-n">{{ a.nome_cliente or '?' }}</span>
+            </button>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal de detalhe do agendamento (aberto ao clicar num chip do calendário) -->
+<div class="agd-modal" id="agd-modal" role="dialog" aria-modal="true" aria-labelledby="agd-titulo">
+  <div class="agd-backdrop" data-fechar></div>
+  <div class="agd-card">
+    <header class="agd-head">
+      <h2 class="agd-titulo" id="agd-titulo">Agendamento</h2>
+      <button type="button" class="agd-x" id="agd-x" aria-label="Fechar">✕</button>
+    </header>
+    <div class="agd-body" id="agd-body"></div>
+  </div>
+</div>
+
+<!-- Modal "Novo agendamento": fora do card p/ sobreviver a ocultar/arrastar
+     (realocado pro body via JS, mesmo padrão do modal de conversas). -->
+<div class="agm-modal" id="agm-modal" role="dialog" aria-modal="true" aria-labelledby="agm-titulo">
+  <div class="agm-backdrop" data-fechar></div>
+  <div class="agm-card">
+    <header class="agm-head">
+      <h2 class="agm-titulo" id="agm-titulo">Novo agendamento</h2>
+      <button type="button" class="agm-x" id="agm-x" aria-label="Fechar">✕</button>
+    </header>
+    <form class="agm-body" id="agm-form" action="/admin/agendamento" data-nativo autocomplete="off">
+      <div class="row">
+        <div><label>Cliente</label><input name="nome_cliente" required placeholder="Nome"></div>
+        <div>
+          <label>Telefone (WhatsApp)</label>
+          <input name="telefone_cliente" required placeholder="+55 (45) 99999-9999" data-telefone inputmode="tel">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Sintoma/Descrição</label>
+          <input name="descricao" id="agm-descricao" placeholder="Ex.: ruído no pneu dianteiro direito" required>
+        </div>
+        <div>      <label>Data</label>
+      <input name="data" id="agm-data" type="date" required></div>
+      </div>
+      <div>
+        <label>Serviço (opcional) <span style="text-transform:none;font-weight:400">— preencha se souber o serviço exato</span></label>
+        <input name="servico_nome" placeholder="Ex.: Troca de óleo" autocomplete="off">
+      </div>
+
+      <p class="agm-slots-dica">O atendimento é por DIA INTEIRO — o cliente ocupa uma vaga (box) o dia todo.</p>
+
+      <div class="row">
+        <div><label>Veículo <span style="text-transform:none;font-weight:400">(opcional)</span></label><input name="veiculo" placeholder="Ex.: Fiat Uno"></div>
+        <div><label>Placa <span style="text-transform:none;font-weight:400">(opcional)</span></label><input name="placa" placeholder="ABC-1234" style="text-transform:uppercase"></div>
+      </div>
+
+      <label>Observações <span style="text-transform:none;font-weight:400">(opcional)</span></label>
+      <input name="observacoes" placeholder="Detalhes do cliente">
+
+      <div class="agm-acoes">
+        <button type="button" class="btn-ghost btn-sm" id="agm-cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary btn-sm" id="agm-salvar">Agendar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>window.__CAL__ = { detalhe: {{ ag_detalhe | tojson }}, apenas_ativos: {{ 'true' if apenas_ativos else 'false' }} };</script>

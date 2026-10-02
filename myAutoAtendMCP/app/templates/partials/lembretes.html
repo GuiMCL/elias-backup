@@ -1,0 +1,73 @@
+<!-- ============ LEMBRETES ============ -->
+<div class="card drag-sec" data-sec="lembretes">
+  <div class="card-head"><span class="drag-grip">⠿</span><h2>Lembretes automaticos</h2><span class="pill {% if lembrete.ativo %}on{% else %}off{% endif %}">{% if lembrete.ativo %}Ativo{% else %}Inativo{% endif %}</span></div>
+  <form method="post" action="/admin/lembrete" style="padding:20px">
+    <div class="row">
+      <div>
+        <label>Ativar lembretes</label>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;cursor:pointer">
+          <input type="checkbox" name="ativo" value="true" style="width:auto;margin:0" {% if lembrete.ativo %}checked{% endif %}>
+          Enviar lembretes automaticos
+        </label>
+      </div>
+    </div>
+
+    <h4 style="margin:16px 0 8px;font-size:14px">Primeiro aviso (DISPARO 1)</h4>
+    <div class="row">
+      <div>
+        <label>Enviar quantas horas antes?</label>
+        <input name="horas_antes" type="number" value="{{ lembrete.horas_antes }}" min="0" max="336" required>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <label>Modelo da mensagem <span style="text-transform:none;font-weight:400">(variáveis preenchidas automaticamente no envio)</span></label>
+      <textarea name="mensagem" id="lembrete-msg-0" rows="3" style="width:100%">{{ lembrete.mensagem }}</textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+        <span class="meta">Variaveis: {nome} · {servico} · {data} · {hora}</span>
+        <button type="button" class="btn-sm" data-lembrete-gerar="0" style="margin-left:auto">Gerar com IA</button>
+      </div>
+      <div id="lembrete-msg-status-0" class="ia-msg" style="display:none"></div>
+    </div>
+
+    <h4 style="margin:16px 0 8px;font-size:14px">Segundo aviso (DISPARO 2)</h4>
+    <div>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;cursor:pointer;margin-bottom:8px">
+        <input type="checkbox" name="ativo2" value="true" style="width:auto;margin:0" {% if lembrete.ativo2 %}checked{% endif %}>
+        Ativar segundo aviso
+      </label>
+    </div>
+    <div class="row">
+      <div>
+        <label>Enviar quantas horas antes?</label>
+        <input name="horas_antes2" type="number" value="{{ lembrete.horas_antes2 }}" min="0" max="336" required>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <label>Modelo da mensagem <span style="text-transform:none;font-weight:400">(variáveis preenchidas automaticamente no envio)</span></label>
+      <textarea name="mensagem2" id="lembrete-msg-1" rows="3" style="width:100%">{{ lembrete.mensagem2 }}</textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+        <span class="meta">Variaveis: {nome} · {servico} · {data} · {hora}</span>
+        <button type="button" class="btn-sm" data-lembrete-gerar="1" style="margin-left:auto">Gerar com IA</button>
+      </div>
+      <div id="lembrete-msg-status-1" class="ia-msg" style="display:none"></div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;cursor:pointer">
+          <input type="checkbox" name="confirmar_automatically" value="true" style="width:auto;margin:0" {% if lembrete.confirmar_automatically %}checked{% endif %}>
+          Confirmar automaticamente se responder "sim"
+        </label>
+      </div>
+      <div>
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;cursor:pointer">
+          <input type="checkbox" name="cancelar_se_nao_confirmar" value="true" style="width:auto;margin:0" {% if lembrete.cancelar_se_nao_confirmar %}checked{% endif %}>
+          Cancelar se nao confirmar em
+        </label>
+        <input name="timeout_horas" type="number" value="{{ lembrete.timeout_horas }}" min="1" max="72" style="width:70px">
+        horas
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-top:16px">Salvar configuracao de lembretes</button>
+  </form>
+</div>
