@@ -18,29 +18,32 @@
 # COMO USAR:
 #   1. cp .env.example .env  (e edite LOGIN e SENHA)
 #   2. docker compose up -d
-#   3. Abra http://localhost:8000/admin e siga o README
+#   3. Abra http://localhost:8001/admin e siga o README
 #
 # =============================================================================
 
+name: myautoatend-replica
+
 services:
   evolution-api:
-    container_name: evolution_api
     image: evoapicloud/evolution-api:latest
     restart: always
     depends_on:
       - redis
       - evolution-postgres
     ports:
-      - "127.0.0.1:9090:9090"
+      - "127.0.0.1:9091:9090"
     volumes:
-      - evolution_instances:/evolution/instances
+      - evolution_instances_replica:/evolution/instances
     networks:
-      - evolution-net
+      evolution-net:
+        aliases:
+          - evolution_api
     environment:
       SERVER_NAME: evolution
       SERVER_TYPE: http
       SERVER_PORT: "9090"
-      SERVER_URL: http://localhost:9090
+      SERVER_URL: http://localhost:9091
       # Postgres é interno (sem porta no host) — credenciais constantes.
       POSTGRES_DATABASE: evolution_api_db
       POSTGRES_USERNAME: evolution
@@ -83,20 +86,18 @@ services:
       - "9090"
 
   redis:
-    container_name: evolution_redis
     image: redis:latest
     restart: always
     command: >
       redis-server --port 6379 --appendonly yes
     volumes:
-      - evolution_redis:/data
+      - evolution_redis_replica:/data
     networks:
       - evolution-net
     expose:
       - "6379"
 
   evolution-postgres:
-    container_name: evolution_postgres
     image: postgres:15
     restart: always
     command:
@@ -111,22 +112,23 @@ services:
       POSTGRES_USER: evolution
       POSTGRES_PASSWORD: evolution_db_interno
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_replica:/var/lib/postgresql/data
     networks:
       - evolution-net
     expose:
       - "5432"
 
   mcp-agendamentos:
-    container_name: mcp_agendamentos
-    build: ./myAutoAtendMCP
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       - evolution-api
     # Painel /admin acessível só localmente. A Evolution entrega o webhook
     # pela rede docker (http://mcp_agendamentos:8000).
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8000"
     environment:
       MCP_DB_PATH: /data/agendamentos.db
       MCP_TZ: America/Sao_Paulo
@@ -137,25 +139,26 @@ services:
       ADMIN_USER: ${LOGIN:?Defina LOGIN e SENHA no .env (copie de .env.example)}
       ADMIN_PASS: ${SENHA:?Defina LOGIN e SENHA no .env (copie de .env.example)}
       # Evolution API — pipeline do agente + pareamento pelo painel.
-      EVOLUTION_API_URL: http://evolution_api:9090
+      EVOLUTION_API_URL: http://evolution-api:9090
       EVOLUTION_API_KEY: ${SENHA}
       EVOLUTION_INSTANCE: evo_bot
       # URL externa (browser do host) p/ atalho no painel.
-      EVOLUTION_EXTERNAL_URL: ${EVOLUTION_EXTERNAL_URL:-http://localhost:9090}
+      EVOLUTION_EXTERNAL_URL: ${EVOLUTION_EXTERNAL_URL:-http://localhost:9091}
     volumes:
-      - mcp_data:/data
+      - mcp_data_replica:/data
     networks:
-      - evolution-net
+      evolution-net:
+        aliases:
+          - mcp_agendamentos
     expose:
       - "8000"
 
 volumes:
-  evolution_instances:
-  evolution_redis:
-  postgres_data:
-  mcp_data:
+  evolution_instances_replica:
+  evolution_redis_replica:
+  postgres_data_replica:
+  mcp_data_replica:
 
 networks:
   evolution-net:
-    name: evolution-net
     driver: bridge
